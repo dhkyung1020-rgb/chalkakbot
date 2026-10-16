@@ -242,7 +242,7 @@
       </div>
       <div class="group">
         <label class="field" for="driveUrl">구글 드라이브 업로드 주소
-          <input type="text" id="driveUrl" placeholder="https://script.google.com/macros/s/.../exec">
+          <input type="text" id="driveUrl" value="https://script.google.com/macros/s/AKfycbyxiUvYnql_xBt_n-9RUa78gQJ1MwpidYciAqttvEnB48UuxhDX_n1QLZZ7xkrEMSdwpQ/exec" placeholder="https://script.google.com/macros/s/.../exec">
         </label>
         <div class="opts" style="margin-top:6px">
           <button class="opt" id="driveTest">연결 확인</button>
@@ -324,6 +324,7 @@ const maskC = mk(320,220), mctx = maskC.getContext('2d');
 const person = mk(W,H), pctx = person.getContext('2d');
 const beauty = mk(W,H), bctx = beauty.getContext('2d');
 
+const anchors=[];                      // 로봇 친구가 부드럽게 따라갈 위치
 function setCaptureRatio(ratio){           // ratio = 가로/세로
   const area=800000;
   const nh=Math.round(Math.sqrt(area/ratio)/2)*2, nw=Math.round(nh*ratio/2)*2;
@@ -536,7 +537,7 @@ for (const [k,f] of Object.entries(IMAGE_FRAMES)){
   const img=new Image();
   img.onload=()=>{ f.img=img; f.slots=detectSlots(img);
     f.ratio = f.slots.length ? f.slots[0].w/f.slots[0].h : img.width/img.height;
-    if (state.frame===k) setCaptureRatio(f.ratio); };
+    if (state.frame===k) pickFrame(k); };
   img.src=f.src;
 }
 const frameButtons={};
@@ -560,6 +561,7 @@ for (const [k,f] of Object.entries(FRAMES)){
   b.addEventListener('click',()=>pickFrame(k));
   frameButtons[k]=b; $('frameOpts').appendChild(b);
 }
+pickFrame(state.frame);
 function setSegUI(on){
   for (const k in bgButtons) if (k!=='none') bgButtons[k].disabled=!on;
   $('bgNote').textContent = on ? '' : 'AI 준비 후 사용 가능';
@@ -796,7 +798,6 @@ function runAI(){
 
 /* ---------- 어깨 위 로봇 친구 ---------- */
 let robotSprite=null;            // 학생이 그린 로봇 (투명 배경 캔버스)
-const anchors=[];                // 사람별로 부드럽게 따라가는 위치
 function buddyAnchors(){
   const out=[];
   const V = p => (p && (p.visibility===undefined || p.visibility>.4));
@@ -1016,7 +1017,7 @@ function jpegAt300dpi(dataUrl){
 }
 /* ---------- 구글 드라이브 업로드 + QR ---------- */
 const DRIVE_KEY='chalkakbot.driveUrl';
-try{ const v=localStorage.getItem(DRIVE_KEY); if(v) $('driveUrl').value=v; }catch{}
+try{ const v=localStorage.getItem(DRIVE_KEY); if(v && v.trim()) $('driveUrl').value=v.trim(); }catch{}
 $('driveUrl').addEventListener('change',()=>{ try{ localStorage.setItem(DRIVE_KEY,$('driveUrl').value.trim()); }catch{} $('driveState').textContent=''; });
 
 function drawQr(text){
